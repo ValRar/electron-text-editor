@@ -1,6 +1,11 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, Menu, MenuItem, ipcMain, dialog} = require('electron')
 const path = require('path')
+const menu = new Menu
+const fs = require('fs')
+
+let mainWindow
+let openedFilePath
 
 function createWindow () {
   // Create the browser window.
@@ -8,7 +13,7 @@ function createWindow () {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'renderer.js')
     }
   })
 
@@ -17,8 +22,45 @@ function createWindow () {
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
+  const ctxMenu = new Menu();
+  ctxMenu.append(new MenuItem({ role: 'copy', accelerator: 'Ctrl+C'}))
+  ctxMenu.append(new MenuItem({ role: 'cut', accelerator: 'Ctrl+X'}))
+  ctxMenu.append(new MenuItem({ role: 'delete'}))
+  ctxMenu.append(new MenuItem({ role: 'selectAll', accelerator: 'Ctrl+A'}))
+  ctxMenu.append(new MenuItem({ role: 'undo', accelerator: 'Ctrl+Z'}))
+  mainWindow.webContents.on('context-menu', function(e, params){
+  ctxMenu.popup(mainWindow, params.x, params.y)
+})
+
+ipcMain.on("OPEN_FILE", () => {
+  dialog.showOpenDialog(mainWindow, {
+    filters: [{name: "text files", extensions: "txt"}]
+  }).then(({ filePaths }) => {
+    const filePath = filePaths[0]
+    app.addRecentDocument(filePath);
+    fs.readFile(filePath, "utf8", (error, content) => {
+      if (error){
+        console.log("error")
+      }else{
+        openedFilePath = filePath
+        mainWindow.webContents.send("FILE_OPENED", content)
+      }
+    })
+  })
+})
+
+//mainWindow.webContents.openDevTools()
 }
 
+Menu.setApplicationMenu(menu)
+menu.append(new MenuItem({
+  label: 'Electron',
+  submenu: [{
+    role: 'copy',
+    accelerator: 'Ctrl+C'
+  }]
+  
+}))
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -30,6 +72,29 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+})
+
+ipcMain.on('CREATE_FILE', () => {
+  dialog.showSaveDialog(mainWindow, {
+    filters: [{name: "text files", extensions: ["txt"]}]
+  }).then(({ filePath }) => {
+    openedFilePath = filePath
+    fs.writeFile(filePath, "", (error) => {
+      if (error){
+        console.log("error")
+      }
+    })
+  })
+})
+
+ipcMain.on("FILE_CHANGED", (_, content) => {
+  if (openedFilePath != null){
+  fs.writeFile(openedFilePath, content, (error) => {
+    if (error){
+      console.log("error")
+    }
+  })
+}
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
