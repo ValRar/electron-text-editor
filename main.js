@@ -21,6 +21,7 @@ function createWindow () {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    titleBarStyle: 'hiddenInset',
     webPreferences: {
       preload: path.join(__dirname, 'renderer.js')
     }
@@ -30,7 +31,6 @@ function createWindow () {
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
   const ctxMenu = new Menu();
   ctxMenu.append(new MenuItem({ role: 'copy', accelerator: 'Ctrl+C'}))
   ctxMenu.append(new MenuItem({ role: 'cut', accelerator: 'Ctrl+X'}))
@@ -43,7 +43,7 @@ function createWindow () {
 
 ipcMain.on("OPEN_FILE", () => {
   dialog.showOpenDialog(mainWindow, {
-    filters: [{name: "text files", extensions: "txt"}]
+    filters: [{name: "all files", extensions: ""}]
   }).then(({ filePaths }) => {
     const filePath = filePaths[0]
     app.addRecentDocument(filePath);
@@ -82,7 +82,7 @@ ipcMain.on("OPEN_FILE", () => {
 
 ipcMain.on('CREATE_FILE', () => {
   dialog.showSaveDialog(mainWindow, {
-    filters: [{name: "text files", extensions: ["txt"]}]
+    filters: [{name: "all files", extensions: [""]}]
   }).then(({ filePath }) => {
     openedFilePath = filePath
     fs.writeFile(filePath, "", (error) => {
@@ -116,7 +116,6 @@ ipcMain.on('CREATE_FILE', () => {
     })
   })
 })
-//mainWindow.webContents.openDevTools()
   ipcMain.on("OPEN_RECENT_FILE", (_, filePath) => {
     fs.readFile(filePath, "utf8", (error, content) => {
       if (error){
@@ -130,13 +129,22 @@ ipcMain.on('CREATE_FILE', () => {
 
 Menu.setApplicationMenu(menu)
 menu.append(new MenuItem({
-  label: 'Electron',
+  label: 'electron',
   submenu: [{
-    role: 'copy',
-    accelerator: 'Ctrl+C'
-  }]
+    label: 'Preferences',
+    click: _ => {
+      const htmlPath = path.join('file://', __dirname, '../electron-text-editor/preferences.html')
+      let prefWindow = new BrowserWindow({ width: 500, height: 300, resizable: false })
+      prefWindow.loadURL(htmlPath)
+      prefWindow.webContents.openDevTools()
+      prefWindow.show()
+      // on window closed
+    },
+  },
+]
   
 }))
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.

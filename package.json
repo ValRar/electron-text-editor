@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "A minimal Electron application",
   "main": "main.js",
+  "type": "commonjs",
   "scripts": {
     "start": "electron ."
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://github.com/ValRar/electron-text-editor",
   "keywords": [
     "Electron",
     "quick",
@@ -20,6 +21,7 @@
     "electron": "^17.1.0"
   },
   "dependencies": {
+    "electron-packager": "^15.4.0",
     "electron-reloader": "^1.2.3"
   }
 }

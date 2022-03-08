@@ -23,7 +23,7 @@ window.addEventListener("DOMContentLoaded", () => {
         ipcRenderer.send("FILE_CHANGED", e.target.value)
         var text = ""
         for (let i = 1;i < el.textArea.value.split("\n").length + 1; i++){
-            text += i + ".\n"
+            text += i + ".<br>"
         }
         el.linecounter.innerHTML = text;
     })
@@ -34,7 +34,7 @@ window.addEventListener("DOMContentLoaded", () => {
         el.textArea.value = content;
         var text = ""
         for (let i = 1;i < content.split('\n').length + 1; i++){
-            text += i + ".\n"
+            text += i + ".<br>"
         }
         el.linecounter.innerHTML = text
         if (filePath != filepaths.file1 && filePath != filepaths.file2 && filePath != filepaths.file3){
@@ -82,5 +82,8 @@ window.addEventListener("DOMContentLoaded", () => {
     })
     el.file3.addEventListener('click', () => {
         ipcRenderer.send("OPEN_RECENT_FILE", filepaths.file3)
+    })
+    ipcRenderer.on("CHANGE_NUMBER_SIZE", (_, value) => {
+        el.linecounter.style.fontSize = value;
     })
 })

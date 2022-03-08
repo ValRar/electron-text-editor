@@ -5,6 +5,7 @@
     flex-direction: column;
     height: 92vh;
     margin: 0px;
+    font-family: 'Roboto', monospace;
 }
 #title-bar{
     background-color: rgb(48, 52, 65);
@@ -13,12 +14,12 @@
     padding-right: 20px;
     padding-left: 20px;
     position: sticky;
+    user-select: none;
 }
 .title-button{
     height: 100%;
     border: none;
     background-color: transparent;
-    font-family: 'Courier New', Courier, monospace;
     text-align: center;
     vertical-align: middle;
     color: #fff;
@@ -38,7 +39,6 @@ main {
     border-top: rgba(185, 185, 185, 0.281) solid 1px;
     padding-top: 3px;
     color:#fff;
-    font-family: 'Courier New', Courier, monospace;
     padding-left: 10px;
     cursor: pointer;
     user-select: none;
@@ -66,15 +66,15 @@ main textarea{
     border-left: solid 2px rgb(47, 139, 101);
     resize: none;
     overflow-y: hidden;
+    font-family: Arial, Helvetica, sans-serif;
 }
 #lines-count{
+    padding-top: 2px;
     height: 95%;
     width: 40px;
-    padding-top: 4px;
     padding-right: 5px;
     color:rgb(189, 189, 189);
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 15.35px;
+    font-size: 14px;
     text-align: right;
     user-select: none;
     position: -webkit-sticky;
