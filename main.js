@@ -3,9 +3,18 @@ const {app, BrowserWindow, Menu, MenuItem, ipcMain, dialog} = require('electron'
 const path = require('path')
 const menu = new Menu
 const fs = require('fs')
+require("electron-reloader")
 
 let mainWindow
 let openedFilePath
+
+var openedFiles = {
+  file1: "",
+  file2: "",
+  file3: "",
+  currentfile: 1,
+  allFilled: false
+}
 
 function createWindow () {
   // Create the browser window.
@@ -21,7 +30,7 @@ function createWindow () {
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
   const ctxMenu = new Menu();
   ctxMenu.append(new MenuItem({ role: 'copy', accelerator: 'Ctrl+C'}))
   ctxMenu.append(new MenuItem({ role: 'cut', accelerator: 'Ctrl+X'}))
@@ -43,13 +52,80 @@ ipcMain.on("OPEN_FILE", () => {
         console.log("error")
       }else{
         openedFilePath = filePath
-        mainWindow.webContents.send("FILE_OPENED", content)
+        if (!openedFiles.allFilled){
+          switch (openedFiles.currentfile){
+            case 1:
+              openedFiles.file1 = filePath
+              break;
+            case 2:
+              openedFiles.file2 = filePath
+              break;
+            case 3:
+              openedFiles.allFilled = true
+              openedFiles.file3 = filePath
+              break;
+          }
+        }
+        else {
+          openedFiles.file1 = filePath
+        }
+        mainWindow.webContents.send("FILE_OPENED", content, filePath, openedFiles.currentfile)
+        if (openedFiles.currentfile < 3 && !openedFiles.allFilled){
+          openedFiles.currentfile++
+        } else{
+          openedFiles.currentfile = 1
+        }
       }
     })
   })
 })
 
+ipcMain.on('CREATE_FILE', () => {
+  dialog.showSaveDialog(mainWindow, {
+    filters: [{name: "text files", extensions: ["txt"]}]
+  }).then(({ filePath }) => {
+    openedFilePath = filePath
+    fs.writeFile(filePath, "", (error) => {
+      if (error){
+        console.log("error")
+      }else{
+        if (!openedFiles.allFilled){
+          switch (openedFiles.currentfile){
+            case 1:
+              openedFiles.file1 = filePath
+              break;
+            case 2:
+              openedFiles.file2 = filePath
+              break;
+            case 3:
+              openedFiles.allFilled = true
+              openedFiles.file3 = filePath
+              break;
+          }
+        }
+        else {
+          openedFiles.file1 = filePath
+        }
+        mainWindow.webContents.send("FILE_CREATED", openedFiles.currentfile, filePath)
+        if (openedFiles.currentfile < 3 && !openedFiles.allFilled){
+          openedFiles.currentfile++
+        } else{
+          openedFiles.currentfile = 1
+        }
+      }
+    })
+  })
+})
 //mainWindow.webContents.openDevTools()
+  ipcMain.on("OPEN_RECENT_FILE", (_, filePath) => {
+    fs.readFile(filePath, "utf8", (error, content) => {
+      if (error){
+        console.log(error.stack)
+      } else {
+        mainWindow.webContents.send("FILE_OPENED", content, filePath, 1)
+      }
+    })
+  })
 }
 
 Menu.setApplicationMenu(menu)
@@ -71,19 +147,6 @@ app.whenReady().then(() => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
-})
-
-ipcMain.on('CREATE_FILE', () => {
-  dialog.showSaveDialog(mainWindow, {
-    filters: [{name: "text files", extensions: ["txt"]}]
-  }).then(({ filePath }) => {
-    openedFilePath = filePath
-    fs.writeFile(filePath, "", (error) => {
-      if (error){
-        console.log("error")
-      }
-    })
   })
 })
 
