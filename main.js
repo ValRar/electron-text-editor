@@ -3,9 +3,23 @@ const {app, BrowserWindow, Menu, MenuItem, ipcMain, dialog} = require('electron'
 const path = require('path')
 const menu = new Menu
 const fs = require('fs')
-require("electron-reloader")
+const CfgPath = path.join(__dirname, "/cfg")
+const defCfg = {
+  number_size: "14px"
+}
 
-let mainWindow
+if (!fs.existsSync(CfgPath)){
+  fs.mkdirSync(CfgPath)
+}
+if (!fs.existsSync(CfgPath + "/settings.json")){
+  fs.writeFileSync(CfgPath + "/settings.json",JSON.stringify(defCfg), (error) => {
+    if (error){
+      console.log(error.stack)
+    }
+  })
+}
+
+require("electron-reloader")
 let openedFilePath
 
 var openedFiles = {
@@ -31,6 +45,9 @@ function createWindow () {
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
+
+
+  mainWindow.webContents.openDevTools()
   const ctxMenu = new Menu();
   ctxMenu.append(new MenuItem({ role: 'copy', accelerator: 'Ctrl+C'}))
   ctxMenu.append(new MenuItem({ role: 'cut', accelerator: 'Ctrl+X'}))
@@ -125,6 +142,9 @@ ipcMain.on('CREATE_FILE', () => {
       }
     })
   })
+  ipcMain.on("CHANGE_NUMBER_SIZE", (_, value) => {
+    mainWindow.webContents.send("CHANGE_NUMBER_SIZE_REPLY", value)
+  })
 }
 
 Menu.setApplicationMenu(menu)
@@ -133,9 +153,14 @@ menu.append(new MenuItem({
   submenu: [{
     label: 'Preferences',
     click: _ => {
-      const htmlPath = path.join('file://', __dirname, '../electron-text-editor/preferences.html')
-      let prefWindow = new BrowserWindow({ width: 500, height: 300, resizable: false })
-      prefWindow.loadURL(htmlPath)
+      let prefWindow = new BrowserWindow({ width: 500, height: 300, resizable: false , webPreferences: {
+        preload: "preferences.js",
+        //webSecurity: false,
+        contextIsolation: false,
+        nodeIntegration: true
+      }
+      })
+      prefWindow.loadFile("preferences.html")
       prefWindow.webContents.openDevTools()
       prefWindow.show()
       // on window closed

@@ -1,5 +1,10 @@
 const { ipcRenderer } = require("electron")
 const path = require("path")
+const CfgPath = path.join(__dirname, "/cfg/settings.json")
+const fs = require('fs')
+const cfg = {
+    number_size: ""
+}
 
 window.addEventListener("DOMContentLoaded", () => {
     const el = {
@@ -16,6 +21,10 @@ window.addEventListener("DOMContentLoaded", () => {
         file2: "",
         file3: ""
     }
+
+    let cfg = JSON.parse(fs.readFileSync(CfgPath))
+    el.linecounter.style.fontSize = cfg["number_size"]
+
     el.createButton.addEventListener('click', () => {
         ipcRenderer.send('CREATE_FILE')
     })
@@ -83,7 +92,10 @@ window.addEventListener("DOMContentLoaded", () => {
     el.file3.addEventListener('click', () => {
         ipcRenderer.send("OPEN_RECENT_FILE", filepaths.file3)
     })
-    ipcRenderer.on("CHANGE_NUMBER_SIZE", (_, value) => {
+    ipcRenderer.on("CHANGE_NUMBER_SIZE_REPLY", (_, value) => {
+        console.log(value)
+        cfg["number_size"] = value
+        fs.writeFileSync(CfgPath, JSON.stringify(cfg))
         el.linecounter.style.fontSize = value;
     })
 })

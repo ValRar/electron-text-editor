@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "A minimal Electron application",
   "main": "main.js",
-  "type": "commonjs",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "package": "electron-packager . electron-tutorial-app --overwrite --platform=win32 --arch=ia32 --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=Electron Tutorial App"
   },
   "repository": "https://github.com/ValRar/electron-text-editor",
   "keywords": [
