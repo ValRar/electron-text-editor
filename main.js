@@ -154,7 +154,7 @@ menu.append(new MenuItem({
     label: 'Preferences',
     click: _ => {
       let prefWindow = new BrowserWindow({ width: 500, height: 300, resizable: false , webPreferences: {
-        preload: "preferences.js",
+        preload: path.join(__dirname, "preferences.js"),
         //webSecurity: false,
         contextIsolation: false,
         nodeIntegration: true

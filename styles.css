@@ -66,7 +66,8 @@ main textarea{
     border-left: solid 2px rgb(47, 139, 101);
     resize: none;
     overflow-y: hidden;
-    font-family: Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-family: 'Roboto mono';
 }
 #lines-count{
     padding-top: 2px;
@@ -75,9 +76,10 @@ main textarea{
     padding-right: 5px;
     color:rgb(189, 189, 189);
     font-size: 14px;
+    font-style: 'Roboto mono';
     text-align: right;
     user-select: none;
-    position: -webkit-sticky;
     position: sticky;
+    font-style: normal;
 }
 /* Add styles here to customize the appearance of your app */
