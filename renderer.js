@@ -2,28 +2,19 @@ const { ipcRenderer } = require("electron")
 const path = require("path")
 const CfgPath = path.join(__dirname, "/cfg/settings.json")
 const fs = require('fs')
-const cfg = {
-    number_size: ""
-}
-
+var recentFileIndex = 0;
 window.addEventListener("DOMContentLoaded", () => {
     const el = {
         createButton: document.getElementById("createButton"),
         textArea: document.getElementById("textarea"),
         linecounter: document.getElementById("lines-count"),
         openButton: document.getElementById("openButton"),
-        file1: document.getElementById("file1"),
-        file2: document.getElementById("file2"),
-        file3: document.getElementById("file3")
-    }
-    var filepaths = {
-        file1: "",
-        file2: "",
-        file3: ""
+        recentFilesList: document.getElementById("recent-files")
     }
 
     let cfg = JSON.parse(fs.readFileSync(CfgPath))
     el.linecounter.style.fontSize = cfg["number_size"]
+    el.linecounter.style.paddingTop = cfg["linescount_padding"]
 
     el.createButton.addEventListener('click', () => {
         ipcRenderer.send('CREATE_FILE')
@@ -39,63 +30,64 @@ window.addEventListener("DOMContentLoaded", () => {
     el.openButton.addEventListener('click', () => {
         ipcRenderer.send("OPEN_FILE")
     })
-    ipcRenderer.on("FILE_OPENED", (_, content, filePath, count) =>{
+    ipcRenderer.on("FILE_OPENED", (_, content, fileName) =>{
         el.textArea.value = content;
         var text = ""
         for (let i = 1;i < content.split('\n').length + 1; i++){
             text += i + ".<br>"
         }
         el.linecounter.innerHTML = text
-        if (filePath != filepaths.file1 && filePath != filepaths.file2 && filePath != filepaths.file3){
-            var filename = path.basename(filePath)
-            switch (count){
-                case 1:
-                    el.file1.innerHTML = filename
-                    filepaths.file1 = filePath
-                    break;
-                case 2:
-                    el.file2.innerHTML = filename
-                    filepaths.file2 = filePath
-                    break;
-                case 3:
-                    el.file3.innerHTML = filename
-                    filepaths.file3 = filePath
-                    break;
+        var unical = true;
+        var recent = document.getElementsByClassName("recent-file");
+        for (let i = 0; i < recent.length; i++){
+            if (recent[i].textContent == fileName){
+                unical = false;
             }
         }
-    })
-    ipcRenderer.on("FILE_CREATED", (_, count, filePath) => {
-        if (filePath != filepaths.file1 && filePath != filepaths.file2 && filePath != filepaths.file3){
-            var filename = path.basename(filePath)
-            switch (count){
-                case 1:
-                    el.file1.innerHTML = filename
-                    filepaths.file1 = filePath
-                    break;
-                case 2:
-                    el.file2.innerHTML = filename
-                    filepaths.file2 = filePath
-                    break;
-                case 3:
-                    el.file3.innerHTML = filename
-                    filepaths.file3 = filePath
-                    break;
+        if (unical){
+            el.recentFilesList.innerHTML += "<li class='recent-file', id='file" + recentFileIndex + "'>" + fileName + "</li>";
+            for (let i = 0; i < recent.length; i++){
+                recent[i].addEventListener('click', function() {
+                    ipcRenderer.send("RECENT_FILE_CLICKED", this.id);
+                })
             }
+            recentFileIndex++;
         }
     })
-    el.file1.addEventListener('click', () => {
-        ipcRenderer.send("OPEN_RECENT_FILE", filepaths.file1)
+    ipcRenderer.on("FILE_CREATED", (_, fileName) => {
+        var unical = true;
+        var recent = document.getElementsByClassName("recent-file");
+        for (let i = 0; i < recent.length; i++){
+            if (recent[i].textContent == fileName){
+                unical = false;
+            }
+        }
+        if (unical){
+            el.recentFilesList.innerHTML += "<li class='recent-file', id='file" + recentFileIndex + "'>" + fileName + "</li>";
+            recentFileIndex++;
+            let interaction = document.getElementById("file" + recentFileIndex);
+            interaction.addEventListener('click', () => {
+                ipcRenderer.send("RECENT_FILE_CLICKED", interaction.id);
+            })
+            recentFileIndex++;
+        }
     })
-    el.file2.addEventListener('click', () => {
-        ipcRenderer.send("OPEN_RECENT_FILE", filepaths.file2)
+    ipcRenderer.on("CHANGE_CFG_REPLY", (_, value, element) => {
+        //cfg[element] = value;
+        //fs.writeFileSync(CfgPath, JSON.stringify(cfg))
+        switch (element) {
+            case "number_size": 
+                el.linecounter.style.fontSize = value;
+                break;
+            case "linescount_padding":
+                el.linecounter.style.paddingTop = value;
+                break;
+            case "background_image":
+                el.textArea.style.backgroundImage = value;
+                console.log(value)
+                break;
+                
+        }
     })
-    el.file3.addEventListener('click', () => {
-        ipcRenderer.send("OPEN_RECENT_FILE", filepaths.file3)
     })
-    ipcRenderer.on("CHANGE_NUMBER_SIZE_REPLY", (_, value) => {
-        console.log(value)
-        cfg["number_size"] = value
-        fs.writeFileSync(CfgPath, JSON.stringify(cfg))
-        el.linecounter.style.fontSize = value;
-    })
-})
+    

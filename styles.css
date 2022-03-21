@@ -8,6 +8,8 @@
     font-family: 'Roboto', monospace;
 }
 #title-bar{
+    position: -webkit-sticky;
+    position: sticky;
     background-color: rgb(48, 52, 65);
     padding-top: 10px;
     padding-bottom: 10px;
@@ -35,7 +37,7 @@ main {
     flex-basis: 100%;
     margin-top: 10px;
 }
-.recent-files{
+.recent-file{
     border-top: rgba(185, 185, 185, 0.281) solid 1px;
     padding-top: 3px;
     color:#fff;
@@ -44,7 +46,7 @@ main {
     user-select: none;
 
 }
-.recent-files:hover {
+.recent-file:hover {
     background-color: rgba(255, 255, 255, 0.089);
 }
 main ul{
@@ -56,7 +58,7 @@ main ul{
 }
 main textarea{
     width: 100%;
-    height: 100%;
+    height:auto;
     background-color: transparent;
     border: none;
     color: #fff;
@@ -68,18 +70,21 @@ main textarea{
     overflow-y: hidden;
     font-style: normal;
     font-family: 'Roboto mono';
+    line-height: 25px;
+    background-image: none;
 }
 #lines-count{
     padding-top: 2px;
     height: 95%;
-    width: 40px;
+    width: 35px;
     padding-right: 5px;
     color:rgb(189, 189, 189);
-    font-size: 14px;
+    font-size: 15px;
     font-style: 'Roboto mono';
     text-align: right;
     user-select: none;
     position: sticky;
     font-style: normal;
+    line-height: 25px;
 }
 /* Add styles here to customize the appearance of your app */

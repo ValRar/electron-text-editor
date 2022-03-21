@@ -5,30 +5,27 @@ const menu = new Menu
 const fs = require('fs')
 const CfgPath = path.join(__dirname, "/cfg")
 const defCfg = {
-  number_size: "14px"
+  number_size: "14px",
+  linescount_padding: "2px"
+}
+var RecentFiles = new Map([])
+
+function AddrecentFile(Path) {
+  let key = "file" + (RecentFiles.size);
+  RecentFiles.set(key, Path);
 }
 
 if (!fs.existsSync(CfgPath)){
   fs.mkdirSync(CfgPath)
 }
 if (!fs.existsSync(CfgPath + "/settings.json")){
-  fs.writeFileSync(CfgPath + "/settings.json",JSON.stringify(defCfg), (error) => {
+  fs.writeFileSync(CfgPath + "/settings.json", JSON.stringify(defCfg), (error) => {
     if (error){
       console.log(error.stack)
     }
   })
 }
-
-require("electron-reloader")
 let openedFilePath
-
-var openedFiles = {
-  file1: "",
-  file2: "",
-  file3: "",
-  currentfile: 1,
-  allFilled: false
-}
 
 function createWindow () {
   // Create the browser window.
@@ -43,8 +40,6 @@ function createWindow () {
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
-
-  // Open the DevTools.
 
 
   mainWindow.webContents.openDevTools()
@@ -68,30 +63,10 @@ ipcMain.on("OPEN_FILE", () => {
       if (error){
         console.log("error")
       }else{
-        openedFilePath = filePath
-        if (!openedFiles.allFilled){
-          switch (openedFiles.currentfile){
-            case 1:
-              openedFiles.file1 = filePath
-              break;
-            case 2:
-              openedFiles.file2 = filePath
-              break;
-            case 3:
-              openedFiles.allFilled = true
-              openedFiles.file3 = filePath
-              break;
-          }
-        }
-        else {
-          openedFiles.file1 = filePath
-        }
-        mainWindow.webContents.send("FILE_OPENED", content, filePath, openedFiles.currentfile)
-        if (openedFiles.currentfile < 3 && !openedFiles.allFilled){
-          openedFiles.currentfile++
-        } else{
-          openedFiles.currentfile = 1
-        }
+        AddrecentFile(filePath)
+        fileName = path.basename(filePath);
+        openedFilePath = filePath;
+        mainWindow.webContents.send("FILE_OPENED", content, fileName)
       }
     })
   })
@@ -104,46 +79,41 @@ ipcMain.on('CREATE_FILE', () => {
     openedFilePath = filePath
     fs.writeFile(filePath, "", (error) => {
       if (error){
-        console.log("error")
+        console.log(error)
       }else{
-        if (!openedFiles.allFilled){
-          switch (openedFiles.currentfile){
-            case 1:
-              openedFiles.file1 = filePath
-              break;
-            case 2:
-              openedFiles.file2 = filePath
-              break;
-            case 3:
-              openedFiles.allFilled = true
-              openedFiles.file3 = filePath
-              break;
-          }
-        }
-        else {
-          openedFiles.file1 = filePath
-        }
-        mainWindow.webContents.send("FILE_CREATED", openedFiles.currentfile, filePath)
-        if (openedFiles.currentfile < 3 && !openedFiles.allFilled){
-          openedFiles.currentfile++
-        } else{
-          openedFiles.currentfile = 1
-        }
+        AddrecentFile(filePath)
+        fileName = path.basename(filePath);
+        mainWindow.webContents.send("FILE_CREATED", fileName)
       }
     })
   })
 })
-  ipcMain.on("OPEN_RECENT_FILE", (_, filePath) => {
+  ipcMain.on("CHANGE_CFG", (_, value, element) => {
+    mainWindow.webContents.send("CHANGE_CFG_REPLY", value, element)
+  })
+  ipcMain.on("RECENT_FILE_CLICKED", (_, id) => {
+    let filePath = RecentFiles.get(id);
     fs.readFile(filePath, "utf8", (error, content) => {
       if (error){
-        console.log(error.stack)
+        console.log(error)
       } else {
-        mainWindow.webContents.send("FILE_OPENED", content, filePath, 1)
+        let fileName = path.basename(filePath);
+        openedFilePath = filePath;
+        mainWindow.webContents.send("FILE_OPENED", content, fileName)
       }
     })
   })
-  ipcMain.on("CHANGE_NUMBER_SIZE", (_, value) => {
-    mainWindow.webContents.send("CHANGE_NUMBER_SIZE_REPLY", value)
+  ipcMain.on("CHANGE_BACKGROUND_IMAGE", () => {
+    dialog.showOpenDialog(mainWindow, {
+      filters: [{name: "all files", extensions: ""}]
+    }).then(({ filePaths }) => {
+      if (filePaths[0] == null){
+      } else {
+        console.log(filePaths[0])
+        let filePath = "url(" + filePaths[0] + ")"
+        mainWindow.webContents.send("CHANGE_CFG_REPLY", filePaths[0], "background_image")
+      }
+    })
   })
 }
 
@@ -154,8 +124,7 @@ menu.append(new MenuItem({
     label: 'Preferences',
     click: _ => {
       let prefWindow = new BrowserWindow({ width: 500, height: 300, resizable: false , webPreferences: {
-        preload: path.join(__dirname, "preferences.js"),
-        //webSecurity: false,
+        preload: path.join(__dirname, "renderer.js"),
         contextIsolation: false,
         nodeIntegration: true
       }
@@ -187,7 +156,7 @@ ipcMain.on("FILE_CHANGED", (_, content) => {
   if (openedFilePath != null){
   fs.writeFile(openedFilePath, content, (error) => {
     if (error){
-      console.log("error")
+
     }
   })
 }
