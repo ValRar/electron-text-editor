@@ -3,13 +3,14 @@
     background-color:rgb(32, 34, 41);
     display: flex;
     flex-direction: column;
-    height: 92vh;
+    min-height: 100vh;
     margin: 0px;
     font-family: 'Roboto', monospace;
+    font-weight: bold;
 }
 #title-bar{
-    position: -webkit-sticky;
     position: sticky;
+    top: 0px;
     background-color: rgb(48, 52, 65);
     padding-top: 10px;
     padding-bottom: 10px;
@@ -17,6 +18,7 @@
     padding-left: 20px;
     position: sticky;
     user-select: none;
+    z-index: 1;
 }
 .title-button{
     height: 100%;
@@ -38,27 +40,32 @@ main {
     margin-top: 10px;
 }
 .recent-file{
-    border-top: rgba(185, 185, 185, 0.281) solid 1px;
+    border-top: rgba(185, 185, 185, 0.281) solid 2px;
     padding-top: 3px;
     color:#fff;
     padding-left: 10px;
     cursor: pointer;
     user-select: none;
-
+    height: fit-content;
+    word-wrap: break-word;
 }
 .recent-file:hover {
     background-color: rgba(255, 255, 255, 0.089);
 }
-main ul{
+#recent-files{
     list-style-type: none;
     margin: 0px;
     padding:0px;
     width:250px;
+    height: fit-content;
     border-right: rgba(185, 185, 185, 0.281) solid 2px;
+    position: sticky;
+    top: 50px;
+    border-bottom: rgba(185, 185, 185, 0.281) solid 2px;
 }
 main textarea{
     width: 100%;
-    height:auto;
+    height: auto;
     background-color: transparent;
     border: none;
     color: #fff;
@@ -70,13 +77,14 @@ main textarea{
     overflow-y: hidden;
     font-style: normal;
     font-family: 'Roboto mono';
+    font-weight: bold;
     line-height: 25px;
     background-image: none;
 }
 #lines-count{
     padding-top: 2px;
     height: 95%;
-    width: 35px;
+    width: 50px;
     padding-right: 5px;
     color:rgb(189, 189, 189);
     font-size: 15px;

@@ -1,6 +1,7 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow, Menu, MenuItem, ipcMain, dialog} = require('electron')
 const path = require('path')
+var mainWindow;
 const menu = new Menu
 const fs = require('fs')
 const CfgPath = path.join(__dirname, "/cfg")
@@ -29,7 +30,7 @@ let openedFilePath
 
 function createWindow () {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     titleBarStyle: 'hiddenInset',
@@ -40,7 +41,6 @@ function createWindow () {
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
-
 
   mainWindow.webContents.openDevTools()
   const ctxMenu = new Menu();
@@ -119,25 +119,20 @@ ipcMain.on('CREATE_FILE', () => {
 
 Menu.setApplicationMenu(menu)
 menu.append(new MenuItem({
-  label: 'electron',
-  submenu: [{
-    label: 'Preferences',
+  label: 'Preferences',
     click: _ => {
-      let prefWindow = new BrowserWindow({ width: 500, height: 300, resizable: false , webPreferences: {
-        preload: path.join(__dirname, "renderer.js"),
-        contextIsolation: false,
-        nodeIntegration: true
+      let prefWindow = new BrowserWindow({ width: 700, height: 500, resizable: false , webPreferences: {
+        preload: path.join(__dirname, "preferences.js"),
+        parent: mainWindow,
       }
       })
       prefWindow.loadFile("preferences.html")
-      prefWindow.webContents.openDevTools()
+      //prefWindow.webContents.openDevTools()
       prefWindow.show()
       // on window closed
     },
   },
-]
-  
-}))
+  ))
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
