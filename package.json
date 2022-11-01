@@ -21,7 +21,7 @@
     "electron": "^19.0.8"
   },
   "dependencies": {
-    "electron-packager": "^15.5.1",
+    "electron-packager": "^17.1.0",
     "electron-reloader": "^1.2.3"
   }
 }
